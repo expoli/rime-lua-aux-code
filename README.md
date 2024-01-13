@@ -78,7 +78,7 @@ RIME 输入法辅助码与音形分离插件
 
 3. 重新配置 Rime 输入法，如果一切顺利，应该就可以使用了。
 
-<summary>安卓平台的小企鹅输入法 5 安装与配置方法</summary>
+#### 安卓平台的小企鹅输入法 5 安装与配置方法
 
 为确保应用的正常运行，应选择安装 [F-Droid 发行的小企鹅输入法版本](https://f-droid.org/packages/org.fcitx.fcitx5.android/)，而不是从 Google Play 上安装。
 
@@ -87,9 +87,7 @@ RIME 输入法辅助码与音形分离插件
 
 至此，Rime 插件的激活步骤基本完成，接下来的操作与桌面平台一致。上述提到的 “用户数据目录” 即桌面端平台的 `Rime 配置文件夹`。
 
-</details>
-
-### 定制码表
+## 定制码表
 
 若要制作个人码表，确保文件格式为 UTF-8 编码即可。文件中每一行应对应一个字的辅码，使用 `=` 号作为分隔符。若同一汉字有多种编码方案，应分别在新的一行中列出，如：
 
@@ -124,4 +122,4 @@ RIME 输入法辅助码与音形分离插件
 * [@ksqsf](https://github.com/ksqsf) 贡献的词语级筛选功能
 * [@shewer](https://github.com/shewer) 优化的代码以及辅码文件配置
 * [@AiraNadih](https://github.com/AiraNadih) 增加小鹤码表、优化辅码分号逻辑、触发键改为可配置项，以及润色此说明文档
-* [@expoli]([https](https://github.com/expoli)) 添加 git 安装方式
+* [@expoli](https://github.com/expoli) 对文档说明的修改
