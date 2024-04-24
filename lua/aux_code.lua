@@ -10,10 +10,17 @@ function AuxFilter.init(env)
 
     local engine = env.engine
     local config = engine.schema.config
-    
+
     -- 設定預設觸發鍵為分號，並從配置中讀取自訂的觸發鍵
     env.trigger_key = config:get_string("key_binder/aux_code_trigger") or ";"
-    
+    -- 设定是否显示辅助码，默认为显示
+    env.show_aux_notice = config:get_string("key_binder/show_aux_notice") or 'true'
+    if env.show_aux_notice == "false" then
+        env.show_aux_notice = false
+    else
+        env.show_aux_notice = true
+    end
+
     ----------------------------
     -- 持續選詞上屏，保持輔助碼分隔符存在 --
     ----------------------------
@@ -25,8 +32,7 @@ function AuxFilter.init(env)
 
         local preedit = ctx:get_preedit()
         local removeAuxInput = ctx.input:match("([^,]+)" .. env.trigger_key)
-        local reeditTextFront = preedit.text:match("([^,]+)" 
-        .. env.trigger_key)
+        local reeditTextFront = preedit.text:match("([^,]+)" .. env.trigger_key)
 
         -- ctx.text 隨著選字的進行，oaoaoa； 有如下的輸出：
         -- ---- 有輔助碼 ----
@@ -155,42 +161,24 @@ function AuxFilter.fullAux(env, word)
 end
 
 -----------------------------------------------
--- 判斷 auxStr 是否匹配 fullAux，目前定義為
---   fullAux not empty && all(auxStr[k] in fullAux[k])
+-- 判斷 auxStr 是否匹配 fullAux
 -----------------------------------------------
 function AuxFilter.match(fullAux, auxStr)
     if #fullAux == 0 then
         return false
     end
 
-    -- 输入辅助码只有一个键
+    local firstKeyMatched = fullAux[1]:find(auxStr:sub(1, 1)) ~= nil
+    -- 如果辅助码只有一个键，且第一个键匹配，则返回 true
     if #auxStr == 1 then
-        -- 第一个匹配上就返回true
-        if fullAux[1]:find(auxStr:sub(1, 1)) then
-            return true
-        else
-            return false
-        end
-    -- 输入辅助码有一个键以上(这边假设为有两个键，超过部分就不管了)
-    else
-        local firstKeyMatched = false
-        local secondKeyMatched = false
-
-        if fullAux[1]:find(auxStr:sub(1, 1)) then
-            firstKeyMatched = true
-        end
-        if fullAux[2]:find(auxStr:sub(2, 2)) then
-            secondKeyMatched = true
-        end
-
-        -- 只有两个键都匹配上了，才返回true
-        if firstKeyMatched and secondKeyMatched then
-            return true
-        else
-            return false
-        end
-
+        return firstKeyMatched
     end
+
+    -- 如果辅助码有两个或更多键，检查第二个键是否匹配
+    local secondKeyMatched = fullAux[2] and fullAux[2]:find(auxStr:sub(2, 2)) ~= nil
+
+    -- 只有当第一个键和第二个键都匹配时，才返回 true
+    return firstKeyMatched and secondKeyMatched
 end
 
 ------------------
@@ -204,7 +192,7 @@ function AuxFilter.func(input, env)
     local auxStr = ''
     if string.find(inputCode, env.trigger_key) then
         -- 字符串中包含輔助碼分隔符
-        local trigger_pattern = env.trigger_key:gsub("%W", "%%%1")  -- 處理特殊字符
+        local trigger_pattern = env.trigger_key:gsub("%W", "%%%1") -- 處理特殊字符
         local localSplit = inputCode:match(trigger_pattern .. "([^,]+)")
         if localSplit then
             auxStr = string.sub(localSplit, 1, 2)
@@ -225,14 +213,8 @@ function AuxFilter.func(input, env)
         --     log.info(i, table.concat(cl, ',', 1, #cl))
         -- end
 
-        -- 處理 simplifier
-        if cand:get_dynamic_type() == "Shadow" then
-            local originalCand = cand:get_genuine()
-            cand = ShadowCandidate(originalCand, originalCand.type, cand.text, cand.comment)
-        end
-
         -- 給待選項加上輔助碼提示
-        if auxCodes and #auxCodes > 0 then
+        if env.show_aux_notice and auxCodes and #auxCodes > 0 then
             local codeComment = table.concat(auxCodes, ',')
             -- 處理 simplifier
             if cand:get_dynamic_type() == "Shadow" then
